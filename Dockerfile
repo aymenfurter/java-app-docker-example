@@ -1,18 +1,21 @@
 FROM openjdk:8-alpine
 
-COPY java-app.zip /tmp/my-java-app.zip
+COPY my-java-app.zip /tmp/my-java-app.zip
 
-RUN cd tmp \ 
-    && unzip -q /tmp/my-java-app.zip \
-    && rm /tmp/my-java-app.zip \
-    && mkdir -p /opt/ \
-    && mv /tmp/my-java-app/ /opt/my-java-app 
+RUN apk add --update bash && rm -rf /var/cache/apk/*
 
-RUN groupadd -g 999 appuser && \
-    useradd -r -u 999 -g appuser appuser 
+RUN mkdir /opt \
+    && cd /opt \
+    && cp /tmp/my-java-app.zip /opt/my-java-app.zip \
+    && unzip /opt/my-java-app.zip \
+    && rm /opt/my-java-app.zip \
+    && addgroup -S app && adduser -S -G app app \
+    && chown -R app /opt/my-java-app/ \
+    && chmod +x /opt/my-java-app/bin/start.sh
 
-USER appuser
+USER app
 
 EXPOSE 1234
 
-ENTRYPOINT ["/opt/my-java-app/bin/start.sh"] 
+ENTRYPOINT "/opt/my-java-app/bin/start.sh"
+
